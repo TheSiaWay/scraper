@@ -1,24 +1,13 @@
-import {
-  getData,
-  getTwitterFollower,
-  getInstagramFollower
-} from "./lib/scraper";
-import { username } from "./secrets/key";
+import express from "express";
+import { getScrapedData, log } from "./lib/utils";
+import "./lib/cron"; // importing cron job file to start the job
 
-const log = console.log;
+const app = express();
 
-const go = () => {
-  const Twitter = `https://twitter.com/${username}`;
-  const Instagram = `https://www.instagram.com/${username}/?__a=1`;
-  Promise.all([getData(Twitter), getData(Instagram, "JSON")])
-    .then(([tData, iData]) => {
-      const tFollowers = getTwitterFollower(tData);
-      const iFollowers = getInstagramFollower(iData);
-      log(
-        `I have ${iFollowers} insta followers + ${tFollowers} twitter followers`
-      );
-    })
-    .catch(err => log("err", err));
-};
+app.get("/scrape", (req, res, next) => {
+  getScrapedData(({ tFollowers, iFollowers }) =>
+    res.send({ tFollowers, iFollowers })
+  );
+});
 
-go();
+app.listen(3000, () => log("listening to port 3000"));
